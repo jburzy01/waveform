@@ -1,0 +1,10 @@
+@font-face {
+  font-family: VHS;
+  src: url("./fonts/VCR_OSD_MONO_1.001.ttf");
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
