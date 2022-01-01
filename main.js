@@ -18,15 +18,15 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(10);
-camera.position.setY(0);
+camera.position.setZ(3);
+camera.position.setY(-3);
 camera.lookAt(0,0,0);
 
 
 
 renderer.render(scene, camera);
 
-const geometry = new THREE.PlaneGeometry( 10, 10, 100, 100 );
+const geometry = new THREE.PlaneGeometry( 10, 10, 500, 500 );
 const material = new THREE.ShaderMaterial({
   uniforms: { 
     uTime: { type: "f", value: 0 },
@@ -87,7 +87,7 @@ function onDocumentMouseWheel( event ) {
 function animate() {
   requestAnimationFrame(animate);
 
-  material.uniforms.uTime.value += 0.005;
+  material.uniforms.uTime.value += 0.01;
 
   raycaster.setFromCamera( mouse, camera );
   const intersects = raycaster.intersectObject( meshRay );
