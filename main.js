@@ -69,6 +69,8 @@ scene.add( meshRay );
 
 document.addEventListener( 'mousemove', onDocumentMouseMove );
 document.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
+document.addEventListener( 'keydown', onKeyPress);
+
 window.addEventListener( 'resize', onWindowResize, false );
 
 function onWindowResize(){
@@ -106,6 +108,48 @@ function initWebcam() {
         console.log("An error occured! " + err);
     });
 
+}
+
+
+function onKeyPress(e) {
+
+    var elem = document.documentElement;
+
+    console.log(e.keyCode);
+    if(e.keyCode == 70) {
+      openFullscreen(elem);  
+    }
+    if(e.keyCode == 27) {
+      closeFullscreen()
+    }
+}
+
+
+/* View in fullscreen */
+function openFullscreen(element) {
+
+  // Supports most browsers and their versions.
+  var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+  if (requestMethod) { // Native full screen.
+      requestMethod.call(element);
+  } else if (typeof window.ActiveXObject !== "undefined") { // Older IE.
+      var wscript = new ActiveXObject("WScript.Shell");
+      if (wscript !== null) {
+          wscript.SendKeys("{F11}");
+      }
+  }
+}
+
+/* Close fullscreen */
+function closeFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) { /* Safari */
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) { /* IE11 */
+    document.msExitFullscreen();
+  }
 }
 
 function animate() {
