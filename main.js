@@ -7,7 +7,9 @@ import fragmentShader from './shaders/fragmentShader.glsl'
 // Setup
 let meshRay;
 let mouseMoved = false;
+var video;
 
+initWebcam();
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -28,13 +30,15 @@ renderer.render(scene, camera);
 
 const textureLoader = new THREE.TextureLoader();
 
+const texture = new THREE.VideoTexture( video );
+
 const geometry = new THREE.PlaneGeometry( 50, 25, 1000, 1000 );
 const material = new THREE.ShaderMaterial({
   uniforms: { 
     uTime: { type: "f", value: 0 },
     uMouse: { type: "v2", value: new THREE.Vector2()},
     uResolution: { type: "v2", value: new THREE.Vector2()},
-    texture1: { type: "t", value: textureLoader.load( 'texture.jpg' ) },
+    texture1: { type: "t", value: texture },
     texture2: { type: "t", value: textureLoader.load( 'noise.png' ) },
   },
   vertexShader,
@@ -90,6 +94,19 @@ function onDocumentMouseWheel( event ) {
 
 }
 
+function initWebcam() {
+
+	video = document.getElementById('video');
+  navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+    })
+    .catch(function(err) {
+        console.log("An error occured! " + err);
+    });
+
+}
 
 function animate() {
   requestAnimationFrame(animate);
