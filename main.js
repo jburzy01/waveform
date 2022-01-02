@@ -18,24 +18,31 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(3);
-camera.position.setY(-3);
+camera.position.setZ(10);
+camera.position.setY(0);
 camera.lookAt(0,0,0);
 
 
 
 renderer.render(scene, camera);
 
-const geometry = new THREE.PlaneGeometry( 10, 10, 500, 500 );
+const textureLoader = new THREE.TextureLoader();
+
+const geometry = new THREE.PlaneGeometry( 50, 25, 1000, 1000 );
 const material = new THREE.ShaderMaterial({
   uniforms: { 
     uTime: { type: "f", value: 0 },
     uMouse: { type: "v2", value: new THREE.Vector2()},
-    uResolution: { type: "v2", value: new THREE.Vector2()}
+    uResolution: { type: "v2", value: new THREE.Vector2()},
+    texture1: { type: "t", value: textureLoader.load( 'texture.jpg' ) },
+    texture2: { type: "t", value: textureLoader.load( 'noise.png' ) },
   },
   vertexShader,
   fragmentShader
 });
+
+material.uniforms.texture1.value.wrapS = material.uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
+material.uniforms.texture2.value.wrapS = material.uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
 
 const plane = new THREE.Mesh( geometry, material );
 scene.add( plane );
@@ -50,7 +57,7 @@ const mouse = new THREE.Vector2( 0, 0 );
 const raycaster = new THREE.Raycaster();
 
 // THREE.Mesh just for mouse raycasting
-const geometryRay = new THREE.PlaneGeometry( 10, 10, 100, 100 );
+const geometryRay = new THREE.PlaneGeometry( 100, 25, 100, 100 );
 meshRay = new THREE.Mesh( geometryRay, new THREE.MeshBasicMaterial( { color: 0xFFFFFF, visible: false } ) );
 meshRay.matrixAutoUpdate = false;
 meshRay.updateMatrix();
@@ -96,8 +103,6 @@ function animate() {
       const point = intersects[ 0 ].point;
       material.uniforms.uMouse.value.x = point.x;
       material.uniforms.uMouse.value.y = point.y;
-      console.log(point.x);
-      console.log("True");
   }
   else {
     material.uniforms.uMouse.value.x = 10000;

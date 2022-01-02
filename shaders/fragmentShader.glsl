@@ -6,27 +6,31 @@ uniform float uTime;
 
 uniform vec2 uMouse;
 uniform vec2 uResolution;
+uniform sampler2D texture1;
+uniform sampler2D texture2;
 
 
 
 
 void main() {
 
-    vec3 light = vec3(0, -5.0, 10.0);
-    light = normalize(light);
-
-    float v = dot(light,v_norm);
-
-    float r = 1.0;
-    float g = 1.0;
-    float b = 1.0;
-
+    // compute the mouse effect
     vec2 pos2D = vec2(v_pos.x, v_pos.y);
+    float dist = exp(-distance(uMouse, pos2D)/2.0);
 
-    float dist = log(distance(uMouse, pos2D));
+    // load the initial texture
+    vec4 noise = texture2D( texture2, v_uv ); 
 
-    vec3 color = vec3(v_uv.x + dist, v_uv.y + dist, 1.0);
-    vec3 ncolor = normalize(color);
+    // shift mapping 
+    vec2 T1 = v_uv + vec2( 1.5, - 1.5 ) * uTime * 0.02;
+    vec2 T2 = v_uv + vec2( - 0.5, 2.0 ) * uTime * 0.01;
 
-    gl_FragColor = vec4( ncolor, 1.0);
+    T1.x += noise.x * 2.0 + dist;
+    T1.y += noise.y * 2.0 + dist;
+    T2.x -= noise.y * 0.2 + dist;
+    T2.y += noise.z * 0.2 + dist;
+
+
+    vec4 color = texture2D( texture1, T2 * 2.0 );
+    gl_FragColor = color;
 }
