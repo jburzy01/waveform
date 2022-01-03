@@ -5,7 +5,6 @@ import vertexShader from "./shaders/vertexShader.glsl";
 import fragmentShader from "./shaders/fragmentShader.glsl";
 
 // Setup
-let meshRay;
 let mouseMoved = false;
 const video = document.getElementById("video");
 
@@ -19,86 +18,91 @@ const video = document.getElementById("video");
     .catch((err) => console.log("An error occured! " + err));
 })();
 
-const scene = new THREE.Scene();
+class App {
+  constructor() {
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: document.querySelector("#bg"),
+    });
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.camera.position.setZ(10);
+    this.camera.position.setY(0);
+    this.camera.lookAt(0, 0, 0);
 
-const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector("#bg"),
-});
+    this.renderer.render(this.scene, this.camera);
 
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(10);
-camera.position.setY(0);
-camera.lookAt(0, 0, 0);
+    this.textureLoader = new THREE.TextureLoader();
 
-renderer.render(scene, camera);
+    this.texture = new THREE.VideoTexture(video);
 
-const textureLoader = new THREE.TextureLoader();
+    this.geometry = new THREE.PlaneGeometry(50, 25, 1000, 1000);
+    this.material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { type: "f", value: 0 },
+        uMouse: { type: "v2", value: new THREE.Vector2() },
+        uResolution: { type: "v2", value: new THREE.Vector2() },
+        texture1: { type: "t", value: this.texture },
+        texture2: { type: "t", value: this.textureLoader.load("noise.png") },
+      },
+      vertexShader,
+      fragmentShader,
+    });
 
-const texture = new THREE.VideoTexture(video);
+    this.material.uniforms.texture1.value.wrapS =
+      this.material.uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
+    this.material.uniforms.texture2.value.wrapS =
+      this.material.uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
 
-const geometry = new THREE.PlaneGeometry(50, 25, 1000, 1000);
-const material = new THREE.ShaderMaterial({
-  uniforms: {
-    uTime: { type: "f", value: 0 },
-    uMouse: { type: "v2", value: new THREE.Vector2() },
-    uResolution: { type: "v2", value: new THREE.Vector2() },
-    texture1: { type: "t", value: texture },
-    texture2: { type: "t", value: textureLoader.load("noise.png") },
-  },
-  vertexShader,
-  fragmentShader,
-});
+    this.plane = new THREE.Mesh(this.geometry, this.material);
+    this.scene.add(this.plane);
 
-material.uniforms.texture1.value.wrapS =
-  material.uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
-material.uniforms.texture2.value.wrapS =
-  material.uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
+    this.pointLight = new THREE.PointLight(0xffffff);
+    this.pointLight.position.set(5, 5, 5);
 
-const plane = new THREE.Mesh(geometry, material);
-scene.add(plane);
+    this.ambientLight = new THREE.AmbientLight(0xffffff);
+    this.scene.add(this.pointLight, this.ambientLight);
 
-const pointLight = new THREE.PointLight(0xffffff);
-pointLight.position.set(5, 5, 5);
+    this.mouse = new THREE.Vector2(0, 0);
+    this.raycaster = new THREE.Raycaster();
 
-const ambientLight = new THREE.AmbientLight(0xffffff);
-scene.add(pointLight, ambientLight);
+    // THREE.Mesh just for mouse raycasting
+    this.geometryRay = new THREE.PlaneGeometry(100, 25, 100, 100);
+    this.meshRay = new THREE.Mesh(
+      this.geometryRay,
+      new THREE.MeshBasicMaterial({ color: 0xffffff, visible: false })
+    );
+    this.meshRay.matrixAutoUpdate = false;
+    this.meshRay.updateMatrix();
+    this.scene.add(this.meshRay);
+  }
+}
 
-const mouse = new THREE.Vector2(0, 0);
-const raycaster = new THREE.Raycaster();
+const app = new App();
 
-// THREE.Mesh just for mouse raycasting
-const geometryRay = new THREE.PlaneGeometry(100, 25, 100, 100);
-meshRay = new THREE.Mesh(
-  geometryRay,
-  new THREE.MeshBasicMaterial({ color: 0xffffff, visible: false })
-);
-meshRay.matrixAutoUpdate = false;
-meshRay.updateMatrix();
-scene.add(meshRay);
-
-const onDocumentMouseMove = (event) => {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+// Event handlers
+function onDocumentMouseMove(event) {
+  app.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  app.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   mouseMoved = true;
-};
+}
 
 const onWindowResize = () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  app.camera.aspect = window.innerWidth / window.innerHeight;
+  app.camera.updateProjectionMatrix();
 
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  app.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
 const onDocumentMouseWheel = (event) => {
-  camera.position.z += event.deltaY / 500;
+  app.camera.position.z += event.deltaY / 500;
 };
 
 /* View in fullscreen */
@@ -136,7 +140,6 @@ const closeFullscreen = () => {
 };
 
 const onKeyPress = (e) => {
-
   console.log(e.key);
   if (e.key == "f") {
     openFullscreen(document.documentElement);
@@ -155,19 +158,19 @@ window.addEventListener("resize", onWindowResize, false);
 (function animate() {
   requestAnimationFrame(animate);
 
-  material.uniforms.uTime.value += 0.01;
+  app.material.uniforms.uTime.value += 0.01;
 
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(meshRay);
+  app.raycaster.setFromCamera(app.mouse, app.camera);
+  const intersects = app.raycaster.intersectObject(app.meshRay);
 
   if (intersects.length > 0) {
     const point = intersects[0].point;
-    material.uniforms.uMouse.value.x = point.x;
-    material.uniforms.uMouse.value.y = point.y;
+    app.material.uniforms.uMouse.value.x = point.x;
+    app.material.uniforms.uMouse.value.y = point.y;
   } else {
-    material.uniforms.uMouse.value.x = 10000;
-    material.uniforms.uMouse.value.y = 10000;
+    app.material.uniforms.uMouse.value.x = 10000;
+    app.material.uniforms.uMouse.value.y = 10000;
   }
 
-  renderer.render(scene, camera);
+  app.renderer.render(app.scene, app.camera);
 })();
