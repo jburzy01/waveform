@@ -9,7 +9,7 @@ let meshRay;
 let mouseMoved = false;
 const video = document.getElementById("video");
 
-const initWebcam = () => {
+(function initWebcam() {
   navigator.mediaDevices
     .getUserMedia({ video: true, audio: false })
     .then((stream) => {
@@ -17,9 +17,8 @@ const initWebcam = () => {
       video.play();
     })
     .catch((err) => console.log("An error occured! " + err));
-};
+})();
 
-initWebcam();
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -153,7 +152,7 @@ document.addEventListener("keydown", onKeyPress);
 
 window.addEventListener("resize", onWindowResize, false);
 
-const animate = () => {
+(function animate() {
   requestAnimationFrame(animate);
 
   material.uniforms.uTime.value += 0.01;
@@ -171,6 +170,4 @@ const animate = () => {
   }
 
   renderer.render(scene, camera);
-};
-
-animate();
+})();
