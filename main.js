@@ -5,8 +5,6 @@ import vertexShader from "./shaders/vertexShader.glsl";
 import fragmentShader from "./shaders/fragmentShader.glsl";
 
 // Setup
-let mouseMoved = false;
-
 (function initWebcam() {
   const video = document.getElementById("video");
   navigator.mediaDevices
@@ -91,8 +89,7 @@ const app = new App();
 const onDocumentMouseMove = (event) => {
   app.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   app.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  mouseMoved = true;
-}
+};
 
 const onWindowResize = () => {
   app.camera.aspect = window.innerWidth / window.innerHeight;
