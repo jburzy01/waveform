@@ -137,13 +137,12 @@ const closeFullscreen = () => {
 };
 
 const onKeyPress = (e) => {
-  var elem = document.documentElement;
 
-  console.log(e.keyCode);
-  if (e.keyCode == 70) {
-    openFullscreen(elem);
+  console.log(e.key);
+  if (e.key == "f") {
+    openFullscreen(document.documentElement);
   }
-  if (e.keyCode == 27) {
+  if (e.key == "Escape" || e.key == "Esc") {
     closeFullscreen();
   }
 };
