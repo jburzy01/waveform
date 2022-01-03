@@ -6,9 +6,9 @@ import fragmentShader from "./shaders/fragmentShader.glsl";
 
 // Setup
 let mouseMoved = false;
-const video = document.getElementById("video");
 
 (function initWebcam() {
+  const video = document.getElementById("video");
   navigator.mediaDevices
     .getUserMedia({ video: true, audio: false })
     .then((stream) => {
@@ -41,7 +41,7 @@ class App {
 
     this.textureLoader = new THREE.TextureLoader();
 
-    this.texture = new THREE.VideoTexture(video);
+    this.texture = new THREE.VideoTexture(document.getElementById("video"));
 
     this.geometry = new THREE.PlaneGeometry(50, 25, 1000, 1000);
     this.material = new THREE.ShaderMaterial({
@@ -88,7 +88,7 @@ class App {
 const app = new App();
 
 // Event handlers
-function onDocumentMouseMove(event) {
+const onDocumentMouseMove = (event) => {
   app.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   app.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   mouseMoved = true;
