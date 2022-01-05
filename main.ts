@@ -3,17 +3,6 @@ import * as THREE from "three";
 import vertexShader from "./shaders/vertexShader.glsl";
 import fragmentShader from "./shaders/fragmentShader.glsl";
 
-(function initWebcam(): void {
-  const video = <HTMLVideoElement>document.getElementById("video");
-  navigator.mediaDevices
-    .getUserMedia({ video: true, audio: false })
-    .then((stream: MediaStream) => {
-      video.srcObject = stream;
-      video.play();
-    })
-    .catch((err: Error) => console.log("An error occured! " + err));
-})();
-
 class App {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
@@ -170,6 +159,17 @@ const init = (): void => {
   document.addEventListener("keydown", onKeyPress);
   window.addEventListener("resize", onWindowResize, false);
 
+  (function initWebcam(): void {
+    const video = <HTMLVideoElement>document.getElementById("video");
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: false })
+      .then((stream: MediaStream) => {
+        video.srcObject = stream;
+        video.play();
+      })
+      .catch((err: Error) => console.log("An error occured! " + err));
+  })();
+
   (function animate(): void {
     requestAnimationFrame(animate);
 
@@ -193,7 +193,6 @@ const init = (): void => {
 
     app.renderer.render(app.scene, app.camera);
   })();
-    
 }
 
 startButton.addEventListener( 'click', init );
