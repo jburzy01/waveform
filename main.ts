@@ -1,22 +1,34 @@
 import "./style.css";
 import * as THREE from "three";
-
 import vertexShader from "./shaders/vertexShader.glsl";
 import fragmentShader from "./shaders/fragmentShader.glsl";
 
-// Setup
-(function initWebcam() {
-  const video = document.getElementById("video");
+(function initWebcam(): void {
+  const video = <HTMLVideoElement>document.getElementById("video");
   navigator.mediaDevices
     .getUserMedia({ video: true, audio: false })
-    .then((stream) => {
+    .then((stream: MediaStream) => {
       video.srcObject = stream;
       video.play();
     })
-    .catch((err) => console.log("An error occured! " + err));
+    .catch((err: Error) => console.log("An error occured! " + err));
 })();
 
 class App {
+  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  textureLoader: THREE.TextureLoader;
+  texture: THREE.VideoTexture;
+  geometry: THREE.PlaneGeometry;
+  material: THREE.ShaderMaterial;
+  plane: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  pointLight: THREE.PointLight;
+  ambientLight: THREE.AmbientLight;
+  mouse: THREE.Vector2;
+  raycaster: THREE.Raycaster;
+  geometryRay: THREE.PlaneGeometry;
+  meshRay: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   constructor() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
@@ -25,9 +37,9 @@ class App {
       0.1,
       1000
     );
-
+    const canvas = <HTMLCanvasElement>document.querySelector("#bg");
     this.renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector("#bg"),
+      canvas,
     });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -39,16 +51,17 @@ class App {
 
     this.textureLoader = new THREE.TextureLoader();
 
-    this.texture = new THREE.VideoTexture(document.getElementById("video"));
+    const video = <HTMLVideoElement>document.getElementById("video");
+    this.texture = new THREE.VideoTexture(video);
 
     this.geometry = new THREE.PlaneGeometry(50, 25, 1000, 1000);
     this.material = new THREE.ShaderMaterial({
       uniforms: {
-        uTime: { type: "f", value: 0 },
-        uMouse: { type: "v2", value: new THREE.Vector2() },
-        uResolution: { type: "v2", value: new THREE.Vector2() },
-        texture1: { type: "t", value: this.texture },
-        texture2: { type: "t", value: this.textureLoader.load("noise.png") },
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2() },
+        uResolution: { value: new THREE.Vector2() },
+        texture1: { value: this.texture },
+        texture2: { value: this.textureLoader.load("./img/noise.png") },
       },
       vertexShader,
       fragmentShader,
@@ -85,58 +98,58 @@ class App {
 
 const app = new App();
 
-// Event handlers
-const onDocumentMouseMove = (event) => {
+// Event Handlers
+const onDocumentMouseMove = (event: MouseEvent): void => {
   app.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   app.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 };
 
-const onWindowResize = () => {
+const onWindowResize = (): void => {
   app.camera.aspect = window.innerWidth / window.innerHeight;
   app.camera.updateProjectionMatrix();
 
   app.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
-const onDocumentMouseWheel = (event) => {
+const onDocumentMouseWheel = (event: WheelEvent): void => {
+  event.preventDefault();
   app.camera.position.z += event.deltaY / 500;
 };
 
-/* View in fullscreen */
-const openFullscreen = (element) => {
+const openFullscreen = (element: HTMLElement): void => {
   // Supports most browsers and their versions.
-  var requestMethod =
-    element.requestFullScreen ||
-    element.webkitRequestFullScreen ||
-    element.mozRequestFullScreen ||
-    element.msRequestFullScreen;
+  const requestMethod =
+    element.requestFullscreen ||
+    element.webkitRequestFullscreen ||
+    element.mozRequestFullscreen ||
+    element.msRequestFullscreen;
 
   if (requestMethod) {
     // Native full screen.
     requestMethod.call(element);
   } else if (typeof window.ActiveXObject !== "undefined") {
     // Older IE.
-    var wscript = new ActiveXObject("WScript.Shell");
+    const wscript = new ActiveXObject("WScript.Shell");
     if (wscript !== null) {
       wscript.SendKeys("{F11}");
     }
   }
 };
 
-/* Close fullscreen */
-const closeFullscreen = () => {
-  if (document.exitFullscreen) {
-    document.exitFullscreen();
-  } else if (document.webkitExitFullscreen) {
-    /* Safari */
-    document.webkitExitFullscreen();
-  } else if (document.msExitFullscreen) {
-    /* IE11 */
-    document.msExitFullscreen();
+const closeFullscreen = (): void => {
+  const doc = <Document>document;
+  if (doc.exitFullscreen) {
+    doc.exitFullscreen();
+  } else if (doc.webkitExitFullscreen) {
+    // Safari
+    doc.webkitExitFullscreen();
+  } else if (doc.msExitFullscreen) {
+    // IE11
+    doc.msExitFullscreen();
   }
 };
 
-const onKeyPress = (e) => {
+const onKeyPress = (e: KeyboardEvent): void => {
   console.log(e.key);
   if (e.key == "f") {
     openFullscreen(document.documentElement);
@@ -147,12 +160,11 @@ const onKeyPress = (e) => {
 };
 
 document.addEventListener("mousemove", onDocumentMouseMove);
-document.addEventListener("mousewheel", onDocumentMouseWheel, false);
+document.addEventListener("wheel", onDocumentMouseWheel);
 document.addEventListener("keydown", onKeyPress);
-
 window.addEventListener("resize", onWindowResize, false);
 
-(function animate() {
+(function animate(): void {
   requestAnimationFrame(animate);
 
   app.material.uniforms.uTime.value += 0.01;
