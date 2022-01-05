@@ -7,8 +7,14 @@
     <title>Waveform</title>
   </head>
   <body>
+    <div id="overlay">
+			<button id="startButton">Play</button>
+		</div>
 
     <video id="video"></video>
+		<audio id="audio" preload="auto" style="display: none">
+			<source src="test.mp3" type="audio/ogg">
+		</audio>
     <canvas id="bg"></canvas>   
 
     <script type="module" src="/main.js"></script>
