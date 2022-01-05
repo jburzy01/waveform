@@ -29,6 +29,7 @@ class App {
   raycaster: THREE.Raycaster;
   geometryRay: THREE.PlaneGeometry;
   meshRay: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+
   constructor() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
@@ -96,26 +97,6 @@ class App {
   }
 }
 
-const app = new App();
-
-// Event Handlers
-const onDocumentMouseMove = (event: MouseEvent): void => {
-  app.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  app.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-};
-
-const onWindowResize = (): void => {
-  app.camera.aspect = window.innerWidth / window.innerHeight;
-  app.camera.updateProjectionMatrix();
-
-  app.renderer.setSize(window.innerWidth, window.innerHeight);
-};
-
-const onDocumentMouseWheel = (event: WheelEvent): void => {
-  event.preventDefault();
-  app.camera.position.z += event.deltaY / 500;
-};
-
 const openFullscreen = (element: HTMLElement): void => {
   // Supports most browsers and their versions.
   const requestMethod =
@@ -159,27 +140,60 @@ const onKeyPress = (e: KeyboardEvent): void => {
   }
 };
 
-document.addEventListener("mousemove", onDocumentMouseMove);
-document.addEventListener("wheel", onDocumentMouseWheel);
-document.addEventListener("keydown", onKeyPress);
-window.addEventListener("resize", onWindowResize, false);
+const startButton = <HTMLButtonElement>document.getElementById( 'startButton' );
 
-(function animate(): void {
-  requestAnimationFrame(animate);
+const init = (): void => {
 
-  app.material.uniforms.uTime.value += 0.01;
+  startButton.style.display = 'none';
+  const app = new App();
 
-  app.raycaster.setFromCamera(app.mouse, app.camera);
-  const intersects = app.raycaster.intersectObject(app.meshRay);
+  // Event Handlers
+  const onDocumentMouseMove = (event: MouseEvent): void => {
+    app.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    app.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  };
 
-  if (intersects.length > 0) {
-    const point = intersects[0].point;
-    app.material.uniforms.uMouse.value.x = point.x;
-    app.material.uniforms.uMouse.value.y = point.y;
-  } else {
-    app.material.uniforms.uMouse.value.x = 10000;
-    app.material.uniforms.uMouse.value.y = 10000;
-  }
+  const onWindowResize = (): void => {
+    app.camera.aspect = window.innerWidth / window.innerHeight;
+    app.camera.updateProjectionMatrix();
 
-  app.renderer.render(app.scene, app.camera);
-})();
+    app.renderer.setSize(window.innerWidth, window.innerHeight);
+  };
+
+  const onDocumentMouseWheel = (event: WheelEvent): void => {
+    event.preventDefault();
+    app.camera.position.z += event.deltaY / 500;
+  };
+
+  document.addEventListener("mousemove", onDocumentMouseMove);
+  document.addEventListener("wheel", onDocumentMouseWheel);
+  document.addEventListener("keydown", onKeyPress);
+  window.addEventListener("resize", onWindowResize, false);
+
+  (function animate(): void {
+    requestAnimationFrame(animate);
+
+    app.material.uniforms.uTime.value += 0.01;
+    const time = app.material.uniforms.uTime.value;
+
+    app.raycaster.setFromCamera(app.mouse, app.camera);
+    const intersects = app.raycaster.intersectObject(app.meshRay);
+
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      app.material.uniforms.uMouse.value.x = point.x;
+      app.material.uniforms.uMouse.value.y = point.y;
+    } else {
+      app.material.uniforms.uMouse.value.x = 10000;
+      app.material.uniforms.uMouse.value.y = 10000;
+    }
+
+    // animate camera
+    app.camera.position.z = 10.0 + 3.0*Math.sin(time/10.0)
+
+    app.renderer.render(app.scene, app.camera);
+  })();
+    
+}
+
+startButton.addEventListener( 'click', init );
